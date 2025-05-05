@@ -194,20 +194,52 @@ def extract_deployment_paths(C, sid, deploy):
     return [image[-1] for image in C[sid][deploy]]
 
 """ADDED BY JUN"""
-def cropImageWithCenter(image, coords): 
-    center_x = coords[0] ; center_y = coords[1]
-    width = coords[2] ; height = coords[3]
+def cropImageWithCenter(image, coords):
+    if image is None or image.size == 0:
+        print("[WARNING] Empty image input.")
+        return image  # Return as is
 
-    # Calculate top-left and bottom-right corners
-    top_left_x = int(center_x - width // 2)
-    top_left_y = int(center_y - height // 2)
-    bottom_right_x = int(center_x + width // 2)
-    bottom_right_y = int(center_y + height // 2)
+    h, w = image.shape[:2]
 
-    # Perform cropping
-    cropped_image = image[top_left_y:bottom_right_y, top_left_x:bottom_right_x]
+    center_x = int(coords[0])
+    center_y = int(coords[1])
+    box_w = int(coords[2])
+    box_h = int(coords[3])
+
+    # Calculate crop boundaries
+    x1 = max(0, center_x - box_w // 2)
+    y1 = max(0, center_y - box_h // 2)
+    x2 = min(w, center_x + box_w // 2)
+    y2 = min(h, center_y + box_h // 2)
+
+    # Validate crop size
+    if x1 >= x2 or y1 >= y2:
+        print(f"[WARNING] Invalid crop bounds ({x1}, {y1}, {x2}, {y2}) for image of shape {image.shape}")
+        return image
+
+    cropped_image = image[y1:y2, x1:x2]
+
+    # Check resulting shape
+    if cropped_image.shape[0] == 0 or cropped_image.shape[1] == 0:
+        print(f"[WARNING] Cropped image has invalid shape: {cropped_image.shape}. Returning original.")
+        return image
 
     return cropped_image
+
+# def cropImageWithCenter(image, coords): 
+#     center_x = coords[0] ; center_y = coords[1]
+#     width = coords[2] ; height = coords[3]
+
+#     # Calculate top-left and bottom-right corners
+#     top_left_x = int(center_x - width // 2)
+#     top_left_y = int(center_y - height // 2)
+#     bottom_right_x = int(center_x + width // 2)
+#     bottom_right_y = int(center_y + height // 2)
+
+#     # Perform cropping
+#     cropped_image = image[top_left_y:bottom_right_y, top_left_x:bottom_right_x]
+
+#     return cropped_image
 
 """ADDED BY JUN"""
 def clean_exif(exif_data):
